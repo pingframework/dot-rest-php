@@ -32,7 +32,7 @@ verify that the API is returning the expected results.
 ## Example - HTTP client mode:
 
 ```http request
-# Call login first
+### Call login first
 POST https://example.com/api/v1/login
 {
     "username": "admin",
