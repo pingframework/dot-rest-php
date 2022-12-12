@@ -1,0 +1,9 @@
+{
+  "jsonrpc": "2.0",
+  "method": "auth.login",
+  "params": {
+    "email": "shimon@bbumgames.com",
+    "password": "12345678"
+  },
+  "id": 1
+}

@@ -1,0 +1,45 @@
+{
+  "name": "pingframework/dot-rest-php",
+  "description": "Dot Rest PHP is a tool that simplifies the process of testing and interacting with HTTP-based APIs. With Dot Rest PHP, users can write simple plain text files to execute HTTP requests and test or retrieve the resulting data.",
+  "keywords": [
+    "ping",
+    "framework",
+    "http",
+    "client",
+    "rest",
+    "api",
+    "integration",
+    "testing",
+    "assertions"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Oleg Bronzov",
+      "email": "oleg.bronzov@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "guzzlehttp/guzzle": "^7",
+    "symfony/console": "^6",
+    "softcreatr/jsonpath": "*",
+    "pingframework/streams": "^1",
+    "symfony/dom-crawler": "*",
+    "ext-dom": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9",
+    "slim/slim": "^4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Pingframework\\DotRestPhp\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Pingframework\\DotRestPhp\\Tests\\": "tests/"
+    }
+  }
+}

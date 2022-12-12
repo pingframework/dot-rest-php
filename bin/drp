@@ -1,0 +1,139 @@
+#!/usr/bin/env php
+<?php
+
+use Pingframework\DotRestPhp\Config;
+use Pingframework\DotRestPhp\DotRestPhp;
+use Pingframework\DotRestPhp\Execution\Context;
+use Pingframework\DotRestPhp\Execution\Value;
+use Pingframework\DotRestPhp\Output\Console\ConsoleLogger;
+use Pingframework\DotRestPhp\Parsing\AssertParser;
+use Pingframework\DotRestPhp\Parsing\CodeParser;
+use Pingframework\DotRestPhp\Parsing\CommentParser;
+use Pingframework\DotRestPhp\Parsing\ConfigParser;
+use Pingframework\DotRestPhp\Parsing\DurationParser;
+use Pingframework\DotRestPhp\Parsing\EchoParser;
+use Pingframework\DotRestPhp\Parsing\IncludeParser;
+use Pingframework\DotRestPhp\Parsing\Parser;
+use Pingframework\DotRestPhp\Parsing\ParserRegistry;
+use Pingframework\DotRestPhp\Parsing\Request\BodyReader;
+use Pingframework\DotRestPhp\Parsing\Request\HeadersReader;
+use Pingframework\DotRestPhp\Parsing\Request\OptionsReader;
+use Pingframework\DotRestPhp\Parsing\RequestParser;
+use Pingframework\DotRestPhp\Parsing\VarParser;
+use Pingframework\DotRestPhp\Reading\Line;
+use Pingframework\DotRestPhp\Reading\LinearFileReader;
+use Pingframework\Streams\Stream;
+use Pingframework\Streams\StreamPipeline;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\SingleCommandApplication;
+use Symfony\Component\Console\Style\SymfonyStyle;
+
+foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
+    if (file_exists($file)) {
+        require $file;
+        break;
+    }
+}
+
+(new SingleCommandApplication())
+    ->setName('Dot Rest PHP')
+    ->setVersion('1.0.0')
+    ->addArgument('file', InputArgument::REQUIRED, 'Path to dot rest php file to run')
+    ->addOption('test', 't', InputOption::VALUE_NONE, "Testing mode")
+    ->addOption('var', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, "Set variable", [])
+    ->addOption('env', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, "Set environment variable", [])
+    ->addOption('conf', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, "Set config variable", [])
+    ->addOption('env-file', null, InputOption::VALUE_REQUIRED, "Set environment variables from file")
+    ->addOption(
+        'parser',
+        null,
+        InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
+        "Additional parser classes including namespace (Pingframework\\\\DotRestPhp\\\\Parsing\\\\VarParser)",
+        [],
+    )
+    ->setCode(function (InputInterface $input, OutputInterface $output) {
+        $io = new SymfonyStyle($input, $output);
+        $logger = ConsoleLogger::build($io);
+        $emptyContext = new Context(new Config(), $logger);
+        $emptyLine = new Line('', 0, '');
+
+        try {
+            $kvParser = StreamPipeline::forIterable();
+            $kvParser
+                ->map(fn(string $v): array => explode('=', $v, 2))
+                ->allMatchOrThrow(
+                    fn(array $v): bool => count($v) === 2,
+                    'Invalid key ~> value format. Supported format: name=value',
+                )
+                ->remapBy(fn(array $v): string => $v[0])
+                ->map(fn(array $v) => Value::of($v[1])->resolve($emptyLine, $emptyContext))
+                ->toMap();
+
+            $ctx = new Context(
+                new Config(
+                    testMode            : (bool)$input->getOption('test'),
+                    failOnAssertionError: !$input->getOption('test'),
+                    verbosity           : $output->getVerbosity(),
+                ),
+                $logger,
+                $kvParser($input->getOption('var')),
+            );
+
+            Stream::of($kvParser($input->getOption('env')))
+                ->forEach(fn(mixed $v, string $k) => putenv("$k=$v"));
+
+            Stream::of($kvParser($input->getOption('conf')))
+                ->forEach(fn(mixed $v, string $k) => $ctx->config($k, $v));
+
+            if ($input->getOption('env-file') !== null) {
+                $fr = LinearFileReader::fromPath($input->getOption('env-file'));
+                while ($l = $fr->nextToken()) {
+                    putenv($l->content);
+                }
+            }
+
+            $parsers = [
+                new RequestParser(
+                    new HeadersReader(),
+                    new OptionsReader(),
+                    new BodyReader(),
+                ),
+                new AssertParser(),
+                new CodeParser(),
+                new CommentParser(),
+                new ConfigParser(),
+                new DurationParser(),
+                new EchoParser(),
+                new IncludeParser(),
+                new VarParser(),
+            ];
+
+            $parserRegistry = new ParserRegistry(
+                ...Stream::of($input->getOption('parser'))
+                ->allMatchOrThrow(
+                    fn(string $v): bool => class_exists($v),
+                    "Invalid parser class name",
+                )
+                ->allMatchOrThrow(
+                    fn(string $v): bool => is_subclass_of($v, Parser::class),
+                    "Invalid parser class type",
+                )
+                ->map(fn(string $v): Parser => new $v())
+                ->merge($parsers)
+                ->unique()
+                ->toList()
+            );
+
+            $drp = new DotRestPhp($parserRegistry, $ctx);
+
+            return $drp->run($input->getArgument('file')) ? Command::SUCCESS : Command::FAILURE;
+        } catch (Throwable $e) {
+            $io->error($e->getMessage());
+            return Command::FAILURE;
+        }
+    })
+    ->run();
