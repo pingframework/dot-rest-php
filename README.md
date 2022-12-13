@@ -37,5 +37,5 @@ assert status == 200
 
 # Resources
 * [Installation](https://github.com/pingframework/dot-rest-php/wiki/Installation)
-* [Documentation](https://github.com/pingframework/dot-rest-php/wiki)
+* [Documentation](https://github.com/pingframework/dot-rest-php/wiki/What-is-Dot-Rest-PHP%3F)
 * [License: MIT](https://github.com/pingframework/dot-rest-php/blob/master/LICENSE)

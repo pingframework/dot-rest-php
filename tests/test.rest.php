@@ -5,3 +5,5 @@ Content-Type: application/json
 Accept: application/json
 
 < te{{fn}}.json
+
+echo jsonpath
