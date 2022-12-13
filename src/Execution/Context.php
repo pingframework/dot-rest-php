@@ -175,13 +175,13 @@ class Context
     /**
      * @throws ContextError
      */
-    public function cookie(string $name, string $extract = 'value'): string|int|bool|null
+    public function cookie(string $name, string $attribute = 'value'): string|int|bool|null
     {
         foreach ($this->response()->getHeader('Set-Cookie') as $header) {
             $cookie = SetCookie::fromString($header);
 
             if ($cookie->getName() === $name) {
-                return match ($extract) {
+                return match ($attribute) {
                     'value'    => $cookie->getValue(),
                     'domain'   => $cookie->getDomain(),
                     'path'     => $cookie->getPath(),
@@ -190,7 +190,7 @@ class Context
                     'secure'   => $cookie->getSecure(),
                     'httponly' => $cookie->getHttpOnly(),
                     'exists'   => true,
-                    default    => throw new ContextError("Undefined cookie attribute: $extract"),
+                    default    => throw new ContextError("Undefined cookie attribute: $attribute"),
                 };
             }
         }

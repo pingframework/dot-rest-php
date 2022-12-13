@@ -36,8 +36,7 @@ namespace Pingframework\DotRestPhp\Execution;
 
 use Pingframework\DotRestPhp\Exception\ExecutionError;
 use Pingframework\DotRestPhp\Reading\Line;
-use Pingframework\DotRestPhp\Utils\PlaceholderTrait;
-use Symfony\Component\Console\Output\OutputInterface;
+use Pingframework\DotRestPhp\Utils\StringifierTrait;
 
 /**
  * @author    Oleg Bronzov <oleg.bronzov@gmail.com>
@@ -46,11 +45,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class EchoRunner implements Runner
 {
-    use PlaceholderTrait;
+    use StringifierTrait;
 
     public function __construct(
         public readonly Line   $line,
-        public readonly string $string,
+        public readonly string $token,
     ) {}
 
     /**
@@ -60,6 +59,6 @@ class EchoRunner implements Runner
      */
     public function run(Context $ctx): void
     {
-        $ctx->logger->echo()->print(Value::of($this->string)->resolve($this->line, $ctx));
+        $ctx->logger->echo()->print($this->stringify(Value::of($this->token)->resolve($this->line, $ctx)));
     }
 }

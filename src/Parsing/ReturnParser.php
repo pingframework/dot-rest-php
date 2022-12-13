@@ -32,36 +32,43 @@
 
 declare(strict_types=1);
 
-namespace Pingframework\DotRestPhp\Output;
+namespace Pingframework\DotRestPhp\Parsing;
+
+use Pingframework\DotRestPhp\Exception\SyntaxError;
+use Pingframework\DotRestPhp\Execution\EchoRunner;
+use Pingframework\DotRestPhp\Execution\ReturnRunner;
+use Pingframework\DotRestPhp\Execution\Runner;
+use Pingframework\DotRestPhp\Reading\Line;
+use Pingframework\DotRestPhp\Reading\LinearReader;
+use Pingframework\DotRestPhp\Utils\PlaceholderTrait;
 
 /**
  * @author    Oleg Bronzov <oleg.bronzov@gmail.com>
  * @copyright 2022
  * @license   https://opensource.org/licenses/MIT  The MIT License
  */
-interface Logger
+class ReturnParser implements Parser
 {
-    public function echo(): EchoLogger;
+    use PlaceholderTrait;
 
-    public function assertion(): AssertionLogger;
+    private const PATTERN = '/^\s*return\s+(.+?)$/';
+    private array $cache = [];
 
-    public function error(): ErrorLogger;
+    public function isApplicable(Line $l): bool
+    {
+        preg_match(self::PATTERN, $l->content, $this->cache);
+        return !empty($this->cache);
+    }
 
-    public function comment(): CommentLogger;
-
-    public function httpClient(): HttpClientLogger;
-
-    public function eval(): EvalLogger;
-
-    public function config(): ConfigLogger;
-
-    public function var(): VarLogger;
-
-    public function include(): IncludeLogger;
-
-    public function duration(): DurationLogger;
-
-    public function summary(): SummaryLogger;
-
-    public function return(): ReturnLogger;
+    /**
+     * @param Line           $l
+     * @param LinearReader   $r
+     * @param ParserRegistry $pr
+     * @return Runner
+     * @throws SyntaxError
+     */
+    public function parse(Line $l, LinearReader $r, ParserRegistry $pr): Runner
+    {
+        return new ReturnRunner($l, trim($this->cache[1]));
+    }
 }

@@ -19,6 +19,7 @@ use Pingframework\DotRestPhp\Parsing\Request\BodyReader;
 use Pingframework\DotRestPhp\Parsing\Request\HeadersReader;
 use Pingframework\DotRestPhp\Parsing\Request\OptionsReader;
 use Pingframework\DotRestPhp\Parsing\RequestParser;
+use Pingframework\DotRestPhp\Parsing\ReturnParser;
 use Pingframework\DotRestPhp\Parsing\VarParser;
 use Pingframework\DotRestPhp\Reading\Line;
 use Pingframework\DotRestPhp\Reading\LinearFileReader;
@@ -110,6 +111,7 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php
                 new EchoParser(),
                 new IncludeParser(),
                 new VarParser(),
+                new ReturnParser(),
             ];
 
             $parserRegistry = new ParserRegistry(

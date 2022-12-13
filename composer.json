@@ -41,5 +41,11 @@
     "psr-4": {
       "Pingframework\\DotRestPhp\\Tests\\": "tests/"
     }
-  }
+  },
+  "scripts": {
+    "drp": "drp"
+  },
+  "bin": [
+    "bin/drp"
+  ]
 }

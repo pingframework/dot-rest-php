@@ -32,36 +32,30 @@
 
 declare(strict_types=1);
 
-namespace Pingframework\DotRestPhp\Output;
+namespace Pingframework\DotRestPhp\Execution;
+
+use Pingframework\DotRestPhp\Exception\ExecutionError;
+use Pingframework\DotRestPhp\Reading\Line;
 
 /**
  * @author    Oleg Bronzov <oleg.bronzov@gmail.com>
  * @copyright 2022
  * @license   https://opensource.org/licenses/MIT  The MIT License
  */
-interface Logger
+class ReturnRunner implements Runner
 {
-    public function echo(): EchoLogger;
+    public function __construct(
+        public readonly Line   $line,
+        public readonly string $token,
+    ) {}
 
-    public function assertion(): AssertionLogger;
-
-    public function error(): ErrorLogger;
-
-    public function comment(): CommentLogger;
-
-    public function httpClient(): HttpClientLogger;
-
-    public function eval(): EvalLogger;
-
-    public function config(): ConfigLogger;
-
-    public function var(): VarLogger;
-
-    public function include(): IncludeLogger;
-
-    public function duration(): DurationLogger;
-
-    public function summary(): SummaryLogger;
-
-    public function return(): ReturnLogger;
+    /**
+     * @param Context $ctx
+     * @return void
+     * @throws ExecutionError
+     */
+    public function run(Context $ctx): void
+    {
+        $ctx->logger->return()->store($this->line, Value::of($this->token));
+    }
 }

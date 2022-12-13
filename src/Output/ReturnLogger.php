@@ -34,34 +34,18 @@ declare(strict_types=1);
 
 namespace Pingframework\DotRestPhp\Output;
 
+use Pingframework\DotRestPhp\Execution\Context;
+use Pingframework\DotRestPhp\Execution\Value;
+use Pingframework\DotRestPhp\Reading\Line;
+
 /**
  * @author    Oleg Bronzov <oleg.bronzov@gmail.com>
  * @copyright 2022
  * @license   https://opensource.org/licenses/MIT  The MIT License
  */
-interface Logger
+interface ReturnLogger
 {
-    public function echo(): EchoLogger;
+    public function store(Line $l, Value $v): void;
 
-    public function assertion(): AssertionLogger;
-
-    public function error(): ErrorLogger;
-
-    public function comment(): CommentLogger;
-
-    public function httpClient(): HttpClientLogger;
-
-    public function eval(): EvalLogger;
-
-    public function config(): ConfigLogger;
-
-    public function var(): VarLogger;
-
-    public function include(): IncludeLogger;
-
-    public function duration(): DurationLogger;
-
-    public function summary(): SummaryLogger;
-
-    public function return(): ReturnLogger;
+    public function print(Context $ctx): void;
 }

@@ -44,6 +44,7 @@ use Pingframework\DotRestPhp\Output\EvalLogger;
 use Pingframework\DotRestPhp\Output\HttpClientLogger;
 use Pingframework\DotRestPhp\Output\IncludeLogger;
 use Pingframework\DotRestPhp\Output\Logger;
+use Pingframework\DotRestPhp\Output\ReturnLogger;
 use Pingframework\DotRestPhp\Output\SummaryLogger;
 use Pingframework\DotRestPhp\Output\VarLogger;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -67,6 +68,7 @@ class ConsoleLogger implements Logger
         public readonly IncludeLogger    $includeLogger,
         public readonly DurationLogger   $durationLogger,
         public readonly SummaryLogger    $summaryLogger,
+        public readonly ReturnLogger     $returnLogger,
     ) {}
 
     public static function build(SymfonyStyle $io): static
@@ -83,6 +85,7 @@ class ConsoleLogger implements Logger
             new ConsoleIncludeLogger($io),
             new ConsoleDurationLogger($io),
             new ConsoleSummaryLogger($io),
+            new ConsoleReturnLogger($io),
         );
     }
 
@@ -139,5 +142,10 @@ class ConsoleLogger implements Logger
     public function summary(): SummaryLogger
     {
         return $this->summaryLogger;
+    }
+
+    public function return(): ReturnLogger
+    {
+        return $this->returnLogger;
     }
 }

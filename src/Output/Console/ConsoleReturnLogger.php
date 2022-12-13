@@ -32,36 +32,39 @@
 
 declare(strict_types=1);
 
-namespace Pingframework\DotRestPhp\Output;
+namespace Pingframework\DotRestPhp\Output\Console;
+
+use Pingframework\DotRestPhp\Execution\Context;
+use Pingframework\DotRestPhp\Execution\Value;
+use Pingframework\DotRestPhp\Output\ReturnLogger;
+use Pingframework\DotRestPhp\Reading\Line;
+use Pingframework\DotRestPhp\Utils\StringifierTrait;
 
 /**
  * @author    Oleg Bronzov <oleg.bronzov@gmail.com>
  * @copyright 2022
  * @license   https://opensource.org/licenses/MIT  The MIT License
  */
-interface Logger
+class ConsoleReturnLogger extends AbstractConsoleLogger implements ReturnLogger
 {
-    public function echo(): EchoLogger;
+    use StringifierTrait;
 
-    public function assertion(): AssertionLogger;
+    private ?Line  $l = null;
+    private ?Value $v = null;
 
-    public function error(): ErrorLogger;
+    public function store(Line $l, Value $v): void
+    {
+        $this->l = $l;
+        $this->v = $v;
+    }
 
-    public function comment(): CommentLogger;
+    public function print(Context $ctx): void
+    {
+        if ($this->l !== null || $this->v !== null) {
+            $this->io->writeln($this->stringify($this->v->resolve($this->l, $ctx)));
+            return;
+        }
 
-    public function httpClient(): HttpClientLogger;
-
-    public function eval(): EvalLogger;
-
-    public function config(): ConfigLogger;
-
-    public function var(): VarLogger;
-
-    public function include(): IncludeLogger;
-
-    public function duration(): DurationLogger;
-
-    public function summary(): SummaryLogger;
-
-    public function return(): ReturnLogger;
+        $this->io->writeln($ctx->hasResponse() ? $ctx->body() : '');
+    }
 }

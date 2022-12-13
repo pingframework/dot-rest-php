@@ -71,7 +71,7 @@ class DotRestPhp
 
             $this->ctx->config->testMode
                 ? $this->ctx->logger->summary()->print($file, $dti, $this->ctx)
-                : $this->ctx->logger->httpClient()->printLatestBody();
+                : $this->ctx->logger->return()->print($this->ctx);
 
             return !$this->ctx->config->testMode || $this->ctx->logger->assertion()->getFailedCount() === 0;
         } catch (Throwable $e) {
